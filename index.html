@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>爱心收集</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #ffebee;
+            overflow: hidden;
+            cursor: pointer;
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            touch-action: manipulation;
+        }
+
+        #heart-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 270px;
+            z-index: 10;
+            transition: opacity 1s ease;
+        }
+
+        #heart-frame {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            clip-path: path('M150 30 C100 0 0 50 150 180 C300 50 200 0 150 30 Z');
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 3px dashed #ff4081;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        #heart-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background-color: rgba(255, 64, 129, 0.3);
+            transition: height 0.8s ease-out;
+        }
+
+        .heart {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            transform: rotate(45deg);
+            pointer-events: none;
+            z-index: 5;
+            background-color: #ff4081;
+        }
+
+        .heart:before,
+        .heart:after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #ff4081;
+        }
+
+        .heart:before {
+            top: -15px;
+            left: 0;
+        }
+
+        .heart:after {
+            top: 0;
+            left: -15px;
+        }
+
+        @keyframes floatToHeart {
+            0% {
+                transform: rotate(45deg) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: rotate(45deg) scale(0.7) translate(var(--target-x), var(--target-y));
+                opacity: 0.8;
+            }
+        }
+
+        #name-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+
+        .name-character {
+            position: absolute;
+            font-size: 0;
+            color: #ff4081;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            transition: font-size 1s ease;
+            font-weight: 300;
+            transform: translate(-50%, -50%);
+            animation: glow 1.5s infinite alternate;
+        }
+
+        #xu {
+            top: 40%;
+            left: 25%;
+        }
+
+        #ya {
+            top: 40%;
+            left: 50%;
+        }
+
+        #jie {
+            top: 40%;
+            left: 75%;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px #ff4081, 0 0 10px #ff4081, 0 0 15px #ff6699, 0 0 20px #ff6699;
+            }
+
+            to {
+                text-shadow: 0 0 10px #ff4081, 0 0 20px #ff4081, 0 0 30px #ff80ab, 0 0 40px #ff80ab;
+            }
+        }
+
+        @keyframes explode {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        #progress-text {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff4081;
+            font-size: 18px;
+            text-align: center;
+            z-index: 20;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .name-particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ff4081;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+        }
+
+        /* 新增的“成年快乐”样式 */
+        #congrats-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, 50px);
+            color: #ff4081;
+            font-size: 30px;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        /* 新增的“天天开心”样式 */
+        #happy-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, 100px);
+            color: #ff4081;
+            font-size: 30px;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="heart-container">
+        <div id="heart-frame">
+            <div id="heart-fill"></div>
+        </div>
+    </div>
+
+    <div id="name-container">
+        <div class="name-character" id="xu">徐</div>
+        <div class="name-character" id="ya">雅</div>
+        <div class="name-character" id="jie">洁</div>
+    </div>
+
+    <div id="progress-text">点击屏幕收集爱心 (0/52)</div>
+
+    <!-- 新增的“成年快乐”元素 -->
+    <div id="congrats-text">成年快乐</div>
+    <!-- 新增的“天天开心”元素 -->
+    <div id="happy-text">天天开心</div>
+
+    <script>
+        const heartFill = document.getElementById('heart-fill');
+        const nameContainer = document.getElementById('name-container');
+        const heartFrame = document.getElementById('heart-frame');
+        const body = document.body;
+        const progressText = document.getElementById('progress-text');
+        const heartContainer = document.getElementById('heart-container');
+        const congratsText = document.getElementById('congrats-text');
+        const happyText = document.getElementById('happy-text');
+
+        let collectedHearts = 0;
+        const heartsToCollect = 52;
+        let allHearts = [];
+        let nameParticles = [];
+
+        // 创建爱心元素
+        function createHeart(x, y) {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.style.left = `${x}px`;
+            heart.style.top = `${y}px`;
+
+            // 创建伪元素
+            const before = document.createElement('div');
+            before.className = 'heart-before';
+
+            const after = document.createElement('div');
+            after.className = 'heart-after';
+
+            document.body.appendChild(heart);
+            allHearts.push(heart);
+
+            // 计算飞向爱心框架的路径
+            const frameRect = heartFrame.getBoundingClientRect();
+            const targetX = frameRect.left + frameRect.width / 2 - x;
+            const targetY = frameRect.top + frameRect.height - 30 - y;
+
+            heart.style.setProperty('--target-x', `${targetX}px`);
+            heart.style.setProperty('--target-y', `${targetY}px`);
+            heart.style.animation = 'floatToHeart 0.8s ease-out forwards';
+
+            // 爱心到达后填充
+            setTimeout(() => {
+                fillHeart();
+                heart.remove();
+                allHearts = allHearts.filter(h => h!== heart);
+            }, 800);
+        }
+
+        // 填充爱心
+        function fillHeart() {
+            collectedHearts++;
+            progressText.textContent = `点击屏幕收集爱心 (${collectedHearts}/${heartsToCollect})`;
+
+            const fillPercent = (collectedHearts / heartsToCollect) * 100;
+            heartFill.style.height = `${fillPercent}%`;
+
+            // 填满后爆炸
+            if (collectedHearts >= heartsToCollect) {
+                setTimeout(explodeAndFormName, 500);
+            }
+        }
+
+        // 爆炸并形成名字
+        function explodeAndFormName() {
+            progressText.style.opacity = '0';
+
+            // 1. 创建满屏爆炸爱心
+            createExplosionHearts();
+
+            // 2. 爱心飞向名字位置
+            setTimeout(() => {
+                formName();
+            }, 1000);
+        }
+
+        // 创建爆炸爱心
+        function createExplosionHearts() {
+            // 先清除可能残留的爱心
+            allHearts.forEach(heart => heart.remove());
+            allHearts = [];
+
+            // 创建100个爆炸爱心（原为200个）
+            for (let i = 0; i < 100; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+
+                // 从爱心框架中心爆炸
+                const frameRect = heartFrame.getBoundingClientRect();
+                const centerX = frameRect.left + frameRect.width / 2;
+                const centerY = frameRect.top + frameRect.height / 2;
+
+                heart.style.left = `${centerX}px`;
+                heart.style.top = `${centerY}px`;
+                heart.style.transform = 'rotate(45deg) scale(0)';
+                heart.style.opacity = '0';
+
+                document.body.appendChild(heart);
+                allHearts.push(heart);
+
+                // 随机大小和位置
+                const size = 0.3 + Math.random() * 0.7;
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 50 + Math.random() * Math.max(window.innerWidth, window.innerHeight);
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+
+                // 动画展开
+                setTimeout(() => {
+                    heart.style.transition = 'all 0.5s ease-out';
+                    heart.style.opacity = '0.8';
+                    heart.style.transform = `rotate(45deg) scale(${size})`;
+                    heart.style.left = `${centerX + tx}px`;
+                    heart.style.top = `${centerY + ty}px`;
+                }, i * 5);
+            }
+        }
+
+        // 形成名字
+        function formName() {
+            // 1. 让爱心框架消失
+            heartContainer.style.opacity = 0;
+
+            // 2. 显示名字容器
+            nameContainer.style.opacity = '1';
+
+            // 3. 创建组成名字的粒子
+            createNameParticles();
+
+            // 4. 爱心飞向名字位置
+            animateHeartsToName();
+
+            // 5. 显示完整名字
+            setTimeout(() => {
+                document.getElementById('xu').style.fontSize = '80px';
+                document.getElementById('ya').style.fontSize = '80px';
+                document.getElementById('jie').style.fontSize = '80px';
+
+                // 移除所有粒子和爱心
+                setTimeout(() => {
+                    allHearts.forEach(heart => heart.remove());
+                    nameParticles.forEach(p => p.remove());
+                    progressText.textContent = "徐雅洁";
+                    progressText.style.opacity = '1';
+
+                    // 等待0.3秒后，名字上移并显示“成年快乐”
+                    setTimeout(() => {
+                        const nameCharacters = document.querySelectorAll('.name-character');
+                        nameCharacters.forEach(char => {
+                            char.style.transform = 'translateY(-30px)';
+                        });
+                        congratsText.style.opacity = 1;
+                        // “成年快乐”上移
+                        setTimeout(() => {
+                            congratsText.style.transform = 'translate(-50%, 20px)';
+                            // 等待0.3秒后显示“天天开心”
+                            setTimeout(() => {
+                                happyText.style.opacity = 1;
+                            }, 300);
+                        }, 300);
+                    }, 300);
+                }, 1000);
+            }, 2000);
+        }
+
+        // 创建名字粒子
+        function createNameParticles() {
+            // 清除旧粒子
+            nameParticles.forEach(p => p.remove());
+            nameParticles = [];
+
+            // 为每个字创建粒子
+            ['xu', 'ya', 'jie'].forEach((charId, index) => {
+                const charElement = document.getElementById(charId);
+                const text = charElement.textContent;
+
+                // 简单模拟每个字的粒子（实际应该更精确）
+                for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'name-particle';
+
+                    // 随机分布在屏幕外
+                    const x = Math.random() * window.innerWidth;
+                    const y = Math.random() * window.innerHeight;
+
+                    particle.style.left = `${x}px`;
+                    particle.style.top = `${y}px`;
+                    particle.style.opacity = '1';
+
+                    document.body.appendChild(particle);
+                    nameParticles.push(particle);
+                }
+            });
+        }
+
+        // 动画：爱心飞向名字位置
+        function animateHeartsToName() {
+            const characters = [
+                { id: 'xu', left: '25%' },
+                { id: 'ya', left: '50%' },
+                { id: 'jie', left: '75%' }
+            ];
+
+            allHearts.forEach((heart, index) => {
+                const charIndex = index % characters.length;
+                const char = characters[charIndex];
+                const charElement = document.getElementById(char.id);
+                const charRect = charElement.getBoundingClientRect();
+
+                setTimeout(() => {
+                    heart.style.transition = 'all 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67)';
+                    heart.style.left = `${charRect.left + charRect.width / 2}px`;
+                    heart.style.top = `${charRect.top + charRect.height / 2}px`;
+                    heart.style.transform = 'rotate(45deg) scale(0.3)';
+
+                    // 到达后消失
+                    setTimeout(() => {
+                        heart.style.opacity = '0';
+                    }, 1500);
+                }, index * 10);
+            });
+        }
+
+        // 点击事件
+        body.addEventListener('click', (e) => {
+            if (collectedHearts >= heartsToCollect) return;
+
+            createHeart(e.clientX, e.clientY);
+        });
+
+        // 触摸事件支持
+        body.addEventListener('touchstart', (e) => {
+            if (collectedHearts >= heartsToCollect) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            createHeart(touch.clientX, touch.clientY);
+        });
+    </script>
+</body>
+
+</html>
